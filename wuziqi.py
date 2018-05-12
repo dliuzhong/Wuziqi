@@ -54,17 +54,86 @@ def playDoInput(whoPlayer):
             continue
 
 def initBoardPlay(board, x_len, y_len):
-    for x in range(x_len):
+    for y in range(y_len):
         tList = []
-        for y in range(y_len):
+        for x in range(x_len):
             tList += [0]
         board += [tList]
 def printBoardPlay(board):
     print('array:')
-    for x in range(len(board)):
-        for y in range(len(board[x])):
-            print(str(board[x][y]), end='')
+    for y in range(len(board)):
+        for x in range(len(board[y])):
+            print(str(board[y][x]), end='')
         print('')
+
+# 判断当前的array是否胜利
+# property: boardArray - Array[][] - 玩家的操作数组
+#           condition - int - 胜利条件
+# return: -2 异常， -1 boardArray void, 0 没有胜利, 1 胜利
+def checkWin(boardArray, condition):
+    try:
+        y_len = len(boardArray)
+        if y_len <= 0 or y_len < condition :
+            return -1
+        x_len = len(boardArray[0])
+        if x_len <= 0 or x_len < condition:
+            return -1
+        value = 0
+        for y in range(y_len - condition + 1):
+            for x in range(x_len - condition + 1):
+                # 第一种判断
+                value = 1 
+                for cd in range(condition):
+                    value *= boardArray[y][cd+x]
+                    if value == 0:
+                        break
+                if value == 1:
+                    return 1
+                # 第二种判断
+                value = 1
+                for cd in range(condition):
+                    value *= boardArray[cd+y][x]
+                    if value == 0:
+                        break
+                if value == 1:
+                    return 1
+                # 第三种判断
+                value = 1
+                for cd in range(condition):
+                    value *= boardArray[cd+y][cd+x]
+                    if value == 0:
+                        break
+                if value == 1:
+                    return 1
+                # 第四种判断
+                value = 1
+                for cd in range(condition):
+                    value *= boardArray[cd+y][condition - cd - 1 + x]
+                    if value == 0:
+                        break
+                if value == 1:
+                    return 1
+                # 第五种判断
+                value = 1
+                for cd in range(condition):
+                    value *= boardArray[cd+y][condition - 1 + x]
+                    if value == 0:
+                        break
+                if value == 1:
+                    return 1
+                # 第六种判断
+                value = 1
+                for cd in range(condition):
+                    value *= boardArray[condition - 1 + y][cd+x]
+                    if value == 0:
+                        break
+                if value == 1:
+                    return 1
+        return 0
+    except:
+        return -2
+
+    
         
 myBoardLen = {
     'x': 10,
@@ -76,61 +145,51 @@ boardPlayTwo = []
 initBoard(myBoard, myBoardLen['x'], myBoardLen['y'])
 initBoardPlay(boardPlayOne, myBoardLen['x'], myBoardLen['y'])
 initBoardPlay(boardPlayTwo, myBoardLen['x'], myBoardLen['y'])
+isException = False             # 玩家是否现在异常
+exceptionType = -1              # 玩家异常类型，-1无异常
+indexBoard = None               # 坐标值
+indexPlay = []                # 玩家输入的坐标，-1退出    
+turn = 'X'                      # 玩家1 - X, 玩家2 - O
+player = 1                      # 玩家1 - 1， 玩家2 - 2
+winCondition = 5
 printBoard(myBoard, myBoardLen['x'], myBoardLen['y'])
-print('If you want to exit, input \':q\'')
-exceptionPlayerOne = False     # 玩家1是否现在异常
-exceptionPlayerOneType = -1    # 玩家1异常类型，-1无异常
-exceptionPlayerTwo = False     # 玩家2是否现在异常
-exceptionPlayerTwoType = -1    # 玩家2异常类型，-1无异常
-indexBoard = None              # 坐标值
-iOnePlayer = []                # 玩家1输入的坐标，-1退出
-iTwoPlayer = []                # 玩家2输入的坐标，-1退出            
+print('If you want to exit, input \':q\'')   
 while True:
-    if not exceptionPlayerTwo:
-        iOnePlayer = playDoInput(1)
-        if iOnePlayer == -1:
-            break
-        else: 
-            try:
-                indexBoard = myBoard[str(iOnePlayer[0]) + '-' + str(iOnePlayer[1])]
-                if indexBoard == 'X' or indexBoard == 'O':
-                    exceptionPlayerOne = True
-                    exceptionPlayerOneType = 1
+    indexPlay = playDoInput(player)
+    if indexPlay == -1:
+        break
+    else: 
+        try:
+            indexBoard = myBoard[str(indexPlay[0]) + '-' + str(indexPlay[1])]
+            if indexBoard == 'X' or indexBoard == 'O':
+                isException = True
+                exceptionType = 1
+                print(str(indexPlay[0]) + ',' + str(indexPlay[1]) + ' has value. Try again.')
+            else:
+                myBoard[str(indexPlay[0]) + '-' + str(indexPlay[1])] = turn 
+                isException = False
+                exceptionType = -1
+                printBoard(myBoard, myBoardLen['x'], myBoardLen['y'])
+                if turn == 'X':
+                    boardPlayOne[indexPlay[0]][indexPlay[1]] = 1
+                    # printBoardPlay(boardPlayOne)
+                    if checkWin(boardPlayOne, winCondition) == 1:
+                        print('Play 1 win! Game over.')
+                        break
+                    turn = 'O'
+                    player = 2
                 else:
-                    myBoard[str(iOnePlayer[0]) + '-' + str(iOnePlayer[1])] = 'X' 
-                    boardPlayOne[iOnePlayer[0]][iOnePlayer[1]] = 1
-                    exceptionPlayerOne = False
-                    exceptionPlayerOneType = -1
-                    printBoard(myBoard, myBoardLen['x'], myBoardLen['y'])
-                    printBoardPlay(boardPlayOne)
-            except:
-                print('Please input valid location. Try again.')
-                exceptionPlayerOne = True
-                exceptionPlayerOneType = 2
-    elif exceptionPlayerTwoType == 1:
-        print(str(iTwoPlayer[0]) + ',' + str(iTwoPlayer[1]) + ' shas value. Try again.')
-    if not exceptionPlayerOne:
-        iTwoPlayer = playDoInput(2)
-        if iTwoPlayer == -1:
-            break
-        else:
-            try:
-                indexBoard = myBoard[str(iTwoPlayer[0]) + '-' + str(iTwoPlayer[1])]
-                if indexBoard == 'O' or indexBoard == 'X':
-                    exceptionPlayerTwo = True
-                    exceptionPlayerTwoType = 1
-                else:
-                    myBoard[str(iTwoPlayer[0]) + '-' + str(iTwoPlayer[1])] = 'O'
-                    boardPlayTwo[iTwoPlayer[0]][iTwoPlayer[1]] = 1
-                    exceptionPlayerTwo = False
-                    exceptionPlayerTwoType = -1
-                    printBoard(myBoard, myBoardLen['x'], myBoardLen['y'])
-                    printBoardPlay(boardPlayTwo)
-            except:
-                print('Please input valid location. Try again.')
-                exceptionPlayerTwo = True
-                exceptionPlayerTwoType = 2
-    elif exceptionPlayerOneType == 1:
-        print(str(iOnePlayer[0]) + ',' + str(iOnePlayer[1]) + ' has value. Try again.')
+                    boardPlayTwo[indexPlay[0]][indexPlay[1]] = 1
+                    # printBoardPlay(boardPlayTwo)
+                    if checkWin(boardPlayTwo, winCondition) == 1:
+                        print('Play 2 win! Game over.')
+                        break
+                    turn = 'X'
+                    player = 1
+                
+        except:
+            print('Please input valid location. Try again.')
+            isException = True
+            exceptionType = 2
                 
     
